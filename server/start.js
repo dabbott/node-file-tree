@@ -1,11 +1,12 @@
-import watcher from "./watch"
+import { watch } from "./watch"
 import { init } from "./server"
 import Tree from './tree'
 import path from 'path'
 
-init(watcher)
-
 const DIRECTORY = path.dirname(__dirname)
+
+const watcher = watch(DIRECTORY)
+init(watcher)
 
 console.log('ROOT', DIRECTORY)
 
@@ -24,7 +25,8 @@ watcher.on('all', (eventName, path) => {
 })
 
 tree.store.on('update', function( state ){
-  console.log( 'state', state )
+  console.log('=== state ===')
+  console.log(JSON.stringify(state, null, 2))
 })
 
 

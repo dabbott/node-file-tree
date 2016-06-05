@@ -26,10 +26,17 @@ class Tree {
   constructor(rootPath) {
     this.rootPath = rootPath
 
-    const pathParts = split(rootPath)
-    const rootName = pathParts[pathParts.length - 1] || ''
-
     const initialState = {}
+
+    const parts = split(rootPath)
+    let lastPart = initialState
+    while (parts.length) {
+      lastPart = lastPart[parts[0]] = {}
+      parts.shift()
+    }
+
+    console.log('IS', JSON.stringify(initialState, null, 2))
+
     const options = { freezeInstances: true }
 
     this.store = new Freezer(initialState, options)
@@ -40,27 +47,24 @@ class Tree {
   get(filePath) {
     const {state, rootPath} = this
 
-    if (filePath === rootPath) {
-      return state
-    }
-
     const isWithin = within(filePath, rootPath)
-
-    console.log(filePath, rootPath)
 
     if (! isWithin) {
       throw new Error(`Can't get path outside root`)
     }
 
-    const parts = getUniqueEnding(rootPath, filePath)
+    const parts = split(filePath)
+
+    console.log('add parts')
 
     let parent = state
     while (parts.length) {
       const part = parts[0]
-      console.log(part)
+
       if (typeof parent[part] === 'undefined') {
         return null
       }
+      
       parts.shift()
       parent = parent[part]
     }
@@ -85,6 +89,14 @@ class Tree {
     return this.add(filePath, true)
   }
   addDir(dirPath) {
+    const {rootPath} = this
+
+    // console.log('add dir', dirPath, 'root', rootPath)
+    if (! within(dirPath, rootPath) || dirPath === rootPath) {
+      console.log('No need to add', dirPath)
+      return
+    }
+
     return this.add(dirPath, {})
   }
   toJS() {
