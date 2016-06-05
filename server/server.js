@@ -2,29 +2,44 @@ var express = require('express');
 var app = express();
 var expressWs = require('express-ws')(app);
 
-export const init = (watcher) => {
-  app.use(function (req, res, next) {
-    console.log('middleware');
-    req.testing = 'testing';
-    return next();
-  });
+export const init = (watcher, tree) => {
 
-  app.get('/', function(req, res, next){
-    console.log('get route', req.testing);
-    res.end();
-  });
+  const connections = []
 
-  app.ws('/', function(ws, req) {
-    watcher.on('all', (eventName, path) => {
-      console.log(eventName, path)
-      const action = { eventName, path }
+  const removeConnection = (item) => {
+    const index = connections.indexOf(item)
+    if (index >= 0) {
+      connections.splice(index, 1)
+    }
+  }
+
+  watcher.on('all', (eventName, path) => {
+    console.log('watcher event', eventName)
+    const action = { eventName, path }
+    connections.forEach(ws => {
       ws.send(JSON.stringify(action))
     })
-    ws.on('message', function(msg) {
-      console.log(msg);
-    });
-    console.log('socket', req.testing);
-  });
+  })
+
+  app.ws('/', function(ws, req) {
+
+    // Send initial state upon connection
+    const action = {
+      eventName: 'initialState',
+      rootPath: tree.rootPath,
+      state: tree.toJS(),
+    }
+
+    ws.send(JSON.stringify(action))
+
+    ws.on('close', () => {
+      removeConnection(ws)
+    })
+
+    connections.push(ws)
+
+    console.log('Connection opened')
+  })
 
   const port = 3124
 

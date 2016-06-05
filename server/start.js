@@ -1,28 +1,18 @@
 import { watch } from "./watch"
 import { init } from "./server"
-import Tree from './tree'
+import Tree from '../shared/tree'
+import treeActions from '../shared/treeActions'
 import path from 'path'
 
 const DIRECTORY = path.dirname(__dirname)
-
-const watcher = watch(DIRECTORY)
-init(watcher)
-
 console.log('ROOT', DIRECTORY)
 
 const tree = new Tree(DIRECTORY)
+const watcher = watch(DIRECTORY)
 
-watcher.on('all', (eventName, path) => {
-  console.log('=>', eventName, path)
-  switch (eventName) {
-    case 'add':
-      tree.addFile(path)
-    break
-    case 'addDir':
-      tree.addDir(path)
-    break
-  }
-})
+init(watcher, tree)
+
+watcher.on('all', treeActions(tree))
 
 tree.store.on('update', function( state ){
   console.log('=== state ===')

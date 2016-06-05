@@ -1,42 +1,13 @@
 import Freezer from 'freezer-js'
 import path from 'path'
-import within from 'path-is-inside'
 
-const split = (filePath) => {
-	const parts = []
-	while (path.dirname(filePath) !== filePath) {
-		parts.unshift(path.basename(filePath))
-		filePath = path.dirname(filePath)
-	}
-	return parts
-}
-
-const getUniqueEnding = (parentPath, childPath) => {
-  const parentParts = split(parentPath)
-  const childParts = split(childPath)
-
-  if (childParts.length < parentParts.length) {
-    throw new Error(`Can't get unique ending - child not in parent`)
-  }
-
-  return childParts.slice(parentParts.length)
-}
+import { split, within, ensurePath } from './utils/pathUtils'
 
 class Tree {
-  constructor(rootPath) {
+  constructor(rootPath, initialState) {
     this.rootPath = rootPath
 
-    const initialState = {}
-
-    const parts = split(rootPath)
-    let lastPart = initialState
-    while (parts.length) {
-      lastPart = lastPart[parts[0]] = {}
-      parts.shift()
-    }
-
-    console.log('IS', JSON.stringify(initialState, null, 2))
-
+    initialState = initialState || ensurePath(rootPath)
     const options = { freezeInstances: true }
 
     this.store = new Freezer(initialState, options)
@@ -55,8 +26,6 @@ class Tree {
 
     const parts = split(filePath)
 
-    console.log('add parts')
-
     let parent = state
     while (parts.length) {
       const part = parts[0]
@@ -64,7 +33,7 @@ class Tree {
       if (typeof parent[part] === 'undefined') {
         return null
       }
-      
+
       parts.shift()
       parent = parent[part]
     }
