@@ -15,6 +15,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "chokidar": "^1.5.1",
+    "path-is-inside": "^1.0.1",
     "react": "^15.1.0",
     "react-dom": "^15.1.0"
   },
