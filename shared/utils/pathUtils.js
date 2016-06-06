@@ -8,7 +8,7 @@ export const split = (filePath) => {
 		parts.unshift(path.basename(filePath))
 		filePath = path.dirname(filePath)
 	}
-	return parts
+	return parts.filter(part => part)
 }
 
 export const ensurePath = (dirPath, state = {}) => {

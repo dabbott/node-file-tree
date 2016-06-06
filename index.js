@@ -3,44 +3,52 @@ require('./styles/index.css')
 
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
+import path from 'path'
 
 import Transport from './client/Transport'
 import Tree from './shared/tree'
 import treeActions from './shared/treeActions'
 import TreeComponent from './client/components/tree/Tree'
+import Store from './client/store'
 
-let tree = null
-let dispatch = null
+const store = new Store()
 
 const render = (state) => {
+  console.log('state', state)
+  const {tree, expandedNodes} = state || {}
+
   const root = (
     <div style={style}>
-      {/*<pre>{JSON.stringify(state, null, 2)}</pre>*/}
       <TreeComponent
-        tree={state}
+        tree={tree}
+        pathSeparator={path.sep}
+        expandedNodes={expandedNodes}
+        onToggleNode={(path, expanded) => {
+          store.dispatch('toggleNode', path, expanded)
+        }}
       />
+      <pre>{JSON.stringify(expandedNodes, null, 2)}</pre>
     </div>
   )
 
   ReactDOM.render(root, document.getElementById('react-root'))
 }
 
+store.on('change', render)
+
 const transport = new Transport(`ws://localhost:3124`)
 transport.on('message', (payload) => {
   const {eventName} = payload
   if (eventName === 'initialState') {
     const {rootPath, state} = payload
-    tree = new Tree(rootPath, state)
-    tree.store.on('update', function( state ){
-      console.log('updated', state, tree.state, state === tree.state)
-      render(tree.state)
-    })
-    dispatch = treeActions(tree)
-    render(tree.state)
+    const tree = new Tree(rootPath, state)
+    store.init(tree, treeActions)
+    console.log('store', store, 'state', store.getState())
+
+
   } else {
     const {path} = payload
-    // console.log('dispatch', tree, dispatch)
-    tree && dispatch && dispatch(eventName, path)
+    store.dispatch(eventName, path)
   }
   console.log('payload', payload)
 })

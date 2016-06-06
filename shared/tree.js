@@ -8,9 +8,8 @@ class Tree {
     this.rootPath = rootPath
 
     initialState = initialState || ensurePath(rootPath)
-    const options = { freezeInstances: true }
 
-    this.store = new Freezer(initialState, options)
+    this.store = new Freezer(initialState)
   }
   get state() {
     return this.store.get()
