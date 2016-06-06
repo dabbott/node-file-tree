@@ -4,7 +4,7 @@ import Tree from '../shared/tree'
 import treeActions from '../shared/treeActions'
 import path from 'path'
 
-const DIRECTORY = path.dirname(__dirname)
+const DIRECTORY = path.join(path.dirname(__dirname), 'example')
 console.log('ROOT', DIRECTORY)
 
 const tree = new Tree(DIRECTORY)

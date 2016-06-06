@@ -7,9 +7,23 @@ import ReactDOM from 'react-dom'
 import Transport from './client/Transport'
 import Tree from './shared/tree'
 import treeActions from './shared/treeActions'
+import TreeComponent from './client/components/tree/Tree'
 
 let tree = null
 let dispatch = null
+
+const render = (state) => {
+  const root = (
+    <div style={style}>
+      {/*<pre>{JSON.stringify(state, null, 2)}</pre>*/}
+      <TreeComponent
+        tree={state}
+      />
+    </div>
+  )
+
+  ReactDOM.render(root, document.getElementById('react-root'))
+}
 
 const transport = new Transport(`ws://localhost:3124`)
 transport.on('message', (payload) => {
@@ -18,10 +32,11 @@ transport.on('message', (payload) => {
     const {rootPath, state} = payload
     tree = new Tree(rootPath, state)
     tree.store.on('update', function( state ){
-      console.log('=== state ===')
-      console.log(JSON.stringify(state, null, 2))
+      console.log('updated', state, tree.state, state === tree.state)
+      render(tree.state)
     })
     dispatch = treeActions(tree)
+    render(tree.state)
   } else {
     const {path} = payload
     // console.log('dispatch', tree, dispatch)
@@ -31,18 +46,13 @@ transport.on('message', (payload) => {
 })
 
 const style = {
-  flex: '1 1 auto',
+  flex: '1',
   display: 'flex',
+  flexDirection: 'column',
   alignItems: 'stretch',
   minWidth: 0,
   minHeight: 0,
   overflow: 'hidden',
 }
 
-const root = (
-  <div style={style}>
-    Hello World!
-  </div>
-)
-
-ReactDOM.render(root, document.getElementById('react-root'))
+render(null)
