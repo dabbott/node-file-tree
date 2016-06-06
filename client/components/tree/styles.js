@@ -21,13 +21,12 @@ const styles = {
     fontSize: 13,
     fontFamily: 'proxima-nova, "Helvetica Neue", Helvetica, Arial, sans-serif',
     lineHeight: '40px',
-    padding: '0 20px',
   },
 }
 
 export const getPaddedStyle = memoize((depth) => {
   return {
-    paddingLeft: depth * 20,
+    paddingLeft: (depth + 1) * 20,
     ...styles.nodeContent,
   }
 })

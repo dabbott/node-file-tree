@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import shallowCompare from 'react-addons-shallow-compare'
 
-import DirectoryNode from './DirectoryNode'
+import Node from './Node'
 
 const styles = {
   container: {
@@ -18,6 +18,7 @@ export default class extends Component {
 
   static defaultProps = {
     tree: null,
+    root: '/',
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -25,13 +26,14 @@ export default class extends Component {
   }
 
   render() {
-    const {tree} = this.props
+    const {tree, root} = this.props
 
     return (
       <div style={styles.container}>
         {(tree &&
-          <DirectoryNode
-            name={'/'}
+          <Node
+            name={root}
+            type={'directory'}
             nodes={tree}
             depth={0}
           />

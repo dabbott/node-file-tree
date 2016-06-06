@@ -68,6 +68,27 @@ class Tree {
 
     return this.add(dirPath, {})
   }
+  remove(itemPath) {
+    const parentPath = path.dirname(itemPath)
+
+    const parent = this.get(parentPath)
+    if (! parent) {
+      console.log(`Can't add path - parent doesn't exist`)
+      return null
+    }
+
+    const basePath = path.basename(itemPath)
+    const item = parent[basePath]
+    parent.remove(basePath)
+
+    return item
+  }
+  removeFile(itemPath) {
+    this.remove(itemPath)
+  }
+  removeDir(itemPath) {
+    this.remove(itemPath)
+  }
   toJS() {
     return this.state.toJS()
   }

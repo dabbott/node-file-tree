@@ -1,10 +1,13 @@
 import React, { Component } from 'react'
 import shallowCompare from 'react-addons-shallow-compare'
 
-import FileNode from './FileNode'
 import styles, { getPaddedStyle } from './styles'
 
-export default class DirectoryNode extends Component {
+const isDirectory = (type) => {
+  return type === 'directory'
+}
+
+export default class Node extends Component {
 
   static defaultProps = {
     name: null,
@@ -14,10 +17,19 @@ export default class DirectoryNode extends Component {
   constructor(props) {
     super(props)
     const {nodes, depth} = props
-    this.state = {
-      sortedNodes: this.sortNodes(nodes),
+    this.state = this.mapPropsToState(props)
+  }
+
+  mapPropsToState(props) {
+    const {type, nodes} = props
+
+    if (isDirectory(type)) {
+      return {
+        sortedNodes: this.sortNodes(nodes),
+      }
+    } else {
+      return {}
     }
-    // console.log('sorted children', this.state.sortedNodes)
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -25,11 +37,7 @@ export default class DirectoryNode extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const {nodes, depth} = nextProps
-    // console.log('received', nodes)
-    this.setState({
-      sortedNodes: this.sortNodes(nodes),
-    })
+    this.setState(this.mapPropsToState(nextProps))
   }
 
   sortNodes(nodes) {
@@ -56,7 +64,7 @@ export default class DirectoryNode extends Component {
   }
 
   render() {
-    const {name, depth} = this.props
+    const {name, depth, type} = this.props
     const {sortedNodes} = this.state
 
     return (
@@ -64,26 +72,16 @@ export default class DirectoryNode extends Component {
         <div style={getPaddedStyle(depth)}>
           <div style={styles.nodeText}>{name}</div>
         </div>
-        {sortedNodes.map((node) => {
-          // console.log('node name', node.name, node)
-          if (node.type === 'file') {
-            return (
-              <FileNode
-                key={node.name}
-                name={node.name}
-                depth={depth + 1}
-              />
-            )
-          } else {
-            return (
-              <DirectoryNode
-                key={node.name}
-                name={node.name}
-                nodes={node.nodes}
-                depth={depth + 1}
-              />
-            )
-          }
+        {isDirectory(type) && sortedNodes.map((node) => {
+          return (
+            <Node
+              key={node.name}
+              name={node.name}
+              type={node.type}
+              nodes={isDirectory(node.type) ? node.nodes : null}
+              depth={depth + 1}
+            />
+          )
         })}
       </div>
     )

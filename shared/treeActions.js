@@ -7,5 +7,11 @@ export default (tree) => (eventName, path) => {
     case 'addDir':
       tree.addDir(path)
     break
+    case 'unlink':
+      tree.removeFile(path)
+    break
+    case 'unlinkDir':
+      tree.removeDir(path)
+    break
   }
 }
