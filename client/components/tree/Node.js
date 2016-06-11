@@ -80,22 +80,7 @@ export default class Node extends Component {
 
   sortNodes(nodes) {
     const sorted = Object.keys(nodes).sort().map((key) => {
-      const node = nodes[key]
-      if (node === true) {
-        // console.log('file node', nodes, node, key)
-        return {
-          name: key,
-          type: 'file',
-          node,
-        }
-      } else {
-        return {
-          name: key,
-          type: 'directory',
-          nodes: node,
-          node,
-        }
-      }
+      return nodes[key]
     })
     // console.log('children', nodes, 'sorted', sorted)
     return sorted
@@ -114,6 +99,7 @@ export default class Node extends Component {
       <div style={styles.nodeContainer}>
         <div style={getPaddedStyle(depth)}
           onClick={() => {
+            console.log('onClick', type, path, expanded)
             isDirectory(type) && onToggleNode(path, ! expanded)
           }}>
           {isDirectory(type) && (
@@ -131,7 +117,7 @@ export default class Node extends Component {
               name={node.name}
               path={nodePath.join(path, node.name)}
               type={node.type}
-              nodes={isDirectory(node.type) ? node.nodes : null}
+              nodes={isDirectory(node.type) ? node.children : null}
               depth={depth + 1}
             />
           )

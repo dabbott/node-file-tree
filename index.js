@@ -14,25 +14,41 @@ import Store from './client/store'
 const transport = new Transport(`ws://localhost:3124`)
 
 const store = new Store()
+const tree = new Tree()
+
+const expandedNodes = {}
 
 let renderCount = 0
 const render = (state) => {
   console.log('render', renderCount++)
-  const {tree, expandedNodes} = state || {}
+  // const {tree, expandedNodes} = state || {}
+
+  try {
+    state = state.children.Users.children.devinabbott.children.Projects
+  } catch (e) {
+    console.log('not loaded')
+  }
 
   const root = (
     <div style={style}>
       <TreeComponent
-        tree={tree && tree.Users.devinabbott.Projects}
+        tree={state}
         root={'/Users/devinabbott/Projects'}
         pathSeparator={path.sep}
         expandedNodes={expandedNodes}
         onToggleNode={(path, expanded) => {
-          store.dispatch('toggleNode', path, expanded)
-          transport.send({
-            eventName: 'watchPath',
-            path: path,
-          })
+          // store.dispatch('toggleNode', path, expanded)
+          if (expandedNodes[path]) {
+            delete expandedNodes[path]
+          } else {
+            expandedNodes[path] = true
+            transport.send({
+              eventName: 'watchPath',
+              path: path,
+            })
+          }
+
+          tree.store.trigger('update', tree.state)
         }}
       />
       <pre>{JSON.stringify(expandedNodes, null, 2)}</pre>
@@ -42,49 +58,58 @@ const render = (state) => {
   ReactDOM.render(root, document.getElementById('react-root'))
 }
 
-store.on('change', render)
+// store.on('change', render)
+tree.on('change', function (state, prevState) {
+  render(state)
+  // console.log('tree change', arguments)
+})
 
-const queue = []
-let timerId = null
-const drainQueue = () => {
-  // const actions = treeActions(store._state.tree)
-  const {tree} = store.getState()
-  // tree.transact()
-  store.startTransaction()
-  console.log('draining queue', queue.length)
-  queue.forEach(({eventName, path}) => {
-    try {
-      store.dispatch(eventName, path)
-    } catch (e) {
-      console.log('error performing', eventName, path)
-      console.error(e)
-    }
-  })
-  console.log('drained queue')
-  queue.length = 0
-  // tree.run()
-  store.finishTransaction()
-  timerId = null
-}
+// const queue = []
+// let timerId = null
+// const drainQueue = () => {
+//   // const actions = treeActions(store._state.tree)
+//   const {tree} = store.getState()
+//   // tree.transact()
+//   store.startTransaction()
+//   console.log('draining queue', queue.length)
+//   queue.forEach(({eventName, path}) => {
+//     try {
+//       store.dispatch(eventName, path)
+//     } catch (e) {
+//       console.log('error performing', eventName, path)
+//       console.error(e)
+//     }
+//   })
+//   console.log('drained queue')
+//   queue.length = 0
+//   // tree.run()
+//   store.finishTransaction()
+//   timerId = null
+// }
 
 transport.on('message', (payload) => {
   const {eventName} = payload
+
   if (eventName === 'initialState') {
     const {rootPath, state} = payload
-    const tree = new Tree(rootPath, state)
-    store.init(tree, treeActions)
-    // console.log('store', store, 'state', store.getState())
 
+    console.log('state =>', state)
 
+    tree.set(rootPath, state)
   } else {
     const {path} = payload
-    queue.push(payload)
-    if (! timerId) {
-      console.log('enqueued')
-      timerId = setTimeout(drainQueue, 2000)
-    }
+
+    console.log('event', eventName, path)
+
+    treeActions(tree)(eventName, path)
+
+    // queue.push(payload)
+    //
+    // if (! timerId) {
+    //   console.log('enqueued')
+    //   timerId = setTimeout(drainQueue, 2000)
+    // }
   }
-  // console.log('payload', payload)
 })
 
 const style = {
@@ -97,4 +122,4 @@ const style = {
   overflow: 'hidden',
 }
 
-render(null)
+render(tree.state)

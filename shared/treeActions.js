@@ -1,11 +1,11 @@
-export default (tree) => (eventName, path) => {
-  // console.log('=>', eventName, path)
+export default (tree) => (eventName, path, metadata) => {
+  // console.log('=>', eventName, path, metadata)
   switch (eventName) {
     case 'add':
-      tree.addFile(path)
+      tree.addFile(path, metadata)
     break
     case 'addDir':
-      tree.addDir(path)
+      tree.addDir(path, metadata)
     break
     case 'unlink':
       tree.removeFile(path)

@@ -10,15 +10,3 @@ export const split = (filePath) => {
 	}
 	return parts.filter(part => part)
 }
-
-export const ensurePath = (dirPath, state = {}) => {
-  const parts = split(dirPath)
-
-  let lastPart = state
-  while (parts.length) {
-    lastPart = lastPart[parts[0]] = {}
-    parts.shift()
-  }
-
-  return state
-}

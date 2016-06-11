@@ -83,7 +83,7 @@ export default class extends Component {
             name={nodePath.basename(root)}
             path={root}
             type={'directory'}
-            nodes={tree}
+            nodes={tree.children}
             depth={0}
           />
         )}

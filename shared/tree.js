@@ -1,18 +1,38 @@
 import Freezer from 'freezer-js'
 import path from 'path'
+import EventEmitter from 'events'
 
-import { split, within, ensurePath } from './utils/pathUtils'
+import { split, within } from './utils/pathUtils'
+import { ensureNode, createFileNode, createDirectoryNode } from './utils/treeUtils'
 
-class Tree {
-  constructor(rootPath, initialState) {
+class Tree extends EventEmitter {
+  constructor(rootPath = '/', initialState) {
+    super()
+
+    this.inTransaction = false
+    this.set(rootPath, initialState)
+  }
+  set(rootPath, state) {
     this.rootPath = rootPath
 
-    initialState = initialState || ensurePath(rootPath)
+    state = state || ensureNode(rootPath)
 
-    this.store = new Freezer(initialState)
+    this.store = new Freezer(state)
+    this.store.on('update', this.emit.bind(this, 'change'))
   }
   get state() {
+    if (this.inTransaction) {
+      return this.transactionState
+    }
     return this.store.get()
+  }
+  startTransaction() {
+    this.inTransaction = true
+    this.transactionState = this.state.transact()
+  }
+  finishTransaction() {
+    this.inTransaction = false
+    this.transactionState = null
   }
   get(filePath) {
     const {state, rootPath} = this
@@ -29,12 +49,12 @@ class Tree {
     while (parts.length) {
       const part = parts[0]
 
-      if (typeof parent[part] === 'undefined') {
+      if (typeof parent.children[part] === 'undefined') {
         return null
       }
 
       parts.shift()
-      parent = parent[part]
+      parent = parent.children[part]
     }
 
     return parent
@@ -49,14 +69,16 @@ class Tree {
     }
 
     const basePath = path.basename(itemPath)
-    parent.set(basePath, item)
+    item.name = basePath
+    item.path = itemPath
+    parent.children.set(basePath, item)
 
     return item
   }
-  addFile(filePath) {
-    return this.add(filePath, true)
+  addFile(filePath, metadata) {
+    return this.add(filePath, createFileNode(filePath, metadata))
   }
-  addDir(dirPath) {
+  addDir(dirPath, metadata) {
     const {rootPath} = this
 
     // console.log('add dir', dirPath, 'root', rootPath)
@@ -65,7 +87,7 @@ class Tree {
       return
     }
 
-    return this.add(dirPath, {})
+    return this.add(dirPath, createDirectoryNode(dirPath, metadata))
   }
   remove(itemPath) {
     const parentPath = path.dirname(itemPath)
@@ -77,8 +99,8 @@ class Tree {
     }
 
     const basePath = path.basename(itemPath)
-    const item = parent[basePath]
-    parent.remove(basePath)
+    const item = parent.children[basePath]
+    parent.children.remove(basePath)
 
     return item
   }
