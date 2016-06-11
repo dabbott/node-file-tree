@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import shallowCompare from 'react-addons-shallow-compare'
+import nodePath from 'path'
 
 import Node from './Node'
 import {split} from '../../../shared/utils/pathUtils'
@@ -14,6 +15,8 @@ const styles = {
     backgroundColor: '#3B3738',
     minHeight: 0,
     minWidth: 0,
+    overflow: 'auto',
+    flexWrap: 'no-wrap',
   },
 }
 
@@ -21,13 +24,12 @@ export default class extends Component {
 
   static childContextTypes = {
     isExpanded: PropTypes.func,
-    pathSeparator: PropTypes.string,
     onToggleNode: PropTypes.func,
   }
 
   static defaultProps = {
     tree: null,
-    root: '',
+    root: '/',
     onToggleNode: () => {},
   }
 
@@ -39,12 +41,7 @@ export default class extends Component {
   }
 
   getChildContext() {
-    const {
-      pathSeparator,
-    } = this.props
-
     return {
-      pathSeparator,
       onToggleNode: this.toggleNode,
       isExpanded: this.isExpanded,
     }
@@ -62,7 +59,7 @@ export default class extends Component {
     const {root, expandedNodes} = this.props
 
     this.props.onToggleNode(path, expanded)
-
+    path = path.slice(root.length)
     const parts = split(path)
     let ref = this.refs.root
     while (parts.length) {
@@ -83,7 +80,7 @@ export default class extends Component {
           <Node
             ref={'root'}
             // expanded={this.isExpanded(root)}
-            name={root}
+            name={nodePath.basename(root)}
             path={root}
             type={'directory'}
             nodes={tree}

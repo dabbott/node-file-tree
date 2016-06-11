@@ -32,6 +32,19 @@ export const init = (watcher, tree) => {
 
     ws.send(JSON.stringify(action))
 
+    ws.on('message', (e) => {
+      const message = JSON.parse(e)
+      const {eventName} = message
+
+      switch (eventName) {
+        case 'watchPath':
+          const {path} = message
+          watcher.add(path + '/')
+          console.log('watching path', path)
+        break
+      }
+    })
+
     ws.on('close', () => {
       removeConnection(ws)
     })

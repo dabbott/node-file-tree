@@ -13,4 +13,8 @@ export default class extends EventEmitter {
     }
   }
 
+  send(data) {
+    this.ws.send(JSON.stringify(data))
+  }
+
 }

@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import shallowCompare from 'react-addons-shallow-compare'
+import nodePath from 'path'
 
 import NodeCaret from './NodeCaret'
 import styles, { getPaddedStyle } from './styles'
@@ -45,7 +46,7 @@ export default class Node extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     const changed = shallowCompare(this, nextProps, nextState)
 
-    console.log('should update?', changed, nextProps.path)
+    // console.log('should update?', changed, nextProps.path)
 
     return changed
     //
@@ -107,7 +108,7 @@ export default class Node extends Component {
     const expanded = isExpanded(path)
     // const expanded = typeof expandedProp === 'undefined' ? isExpanded(path) : expandedProp
 
-    console.log('rendering', 'expanded', expanded, path)
+    // console.log('rendering', 'expanded', expanded, path)
 
     return (
       <div style={styles.nodeContainer}>
@@ -128,7 +129,7 @@ export default class Node extends Component {
               ref={node.name}
               key={node.name}
               name={node.name}
-              path={path + pathSeparator + node.name}
+              path={nodePath.join(path, node.name)}
               type={node.type}
               nodes={isDirectory(node.type) ? node.nodes : null}
               depth={depth + 1}

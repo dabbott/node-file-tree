@@ -6,6 +6,7 @@ class Store extends EventEmitter {
     super()
 
     this.status = 'loading'
+    this.inTransaction = false
     this._state = {
       tree: null,
       expandedNodes: new Freezer({}),
@@ -19,6 +20,15 @@ class Store extends EventEmitter {
       tree: state.tree ? state.tree.state : null,
       expandedNodes: state.expandedNodes.get(),
     }
+  }
+
+  startTransaction() {
+    this.inTransaction = true
+  }
+
+  finishTransaction() {
+    this.inTransaction = false
+    this.emitChange()
   }
 
   init(tree, treeActions) {
@@ -44,7 +54,7 @@ class Store extends EventEmitter {
       this._dispatch && this._dispatch(...args)
     }
 
-    this.emitChange()
+    ! this.inTransaction && this.emitChange()
   }
 
   emitChange() {

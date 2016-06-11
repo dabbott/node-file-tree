@@ -1,5 +1,5 @@
 export default (tree) => (eventName, path) => {
-  console.log('=>', eventName, path)
+  // console.log('=>', eventName, path)
   switch (eventName) {
     case 'add':
       tree.addFile(path)
