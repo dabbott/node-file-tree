@@ -1,8 +1,10 @@
 import React, { Component, PropTypes } from 'react'
+import _ from 'lodash'
 import shallowCompare from 'react-addons-shallow-compare'
 import nodePath from 'path'
 
 import Node from './Node'
+import { getVisibleNodesByIndex } from '../../../shared/utils/treeUtils'
 
 const styles = {
   container: {
@@ -30,7 +32,17 @@ export default class extends Component {
     super()
 
     this.toggleNode = this.toggleNode.bind(this)
+    this.renderNode = this.renderNode.bind(this)
+    // this.handleScroll = _.throttle(this.handleScroll.bind(this), 100)
   }
+
+  // componentDidMount() {
+  //   this.calculatePosition()
+  // }
+  //
+  // componentDidUpdate() {
+  //   this.calculatePosition()
+  // }
 
   shouldComponentUpdate(nextProps, nextState) {
     const {tree: oldTree} = this.props
@@ -44,19 +56,26 @@ export default class extends Component {
     this.props.onToggleNode(node)
   }
 
+  renderNode({node, depth}) {
+    const {path} = node
+
+    return (
+      <Node
+        key={path}
+        node={node}
+        depth={depth}
+        onToggleNode={this.toggleNode}
+      />
+    )
+  }
+
   render() {
     const {tree} = this.props
+    const visibleNodes = getVisibleNodesByIndex(tree, 0, 20)
 
     return (
       <div style={styles.container}>
-        {tree && (
-          <Node
-            ref={'root'}
-            node={tree}
-            depth={0}
-            onToggleNode={this.toggleNode}
-          />
-        )}
+        {visibleNodes.map(this.renderNode)}
       </div>
     )
   }

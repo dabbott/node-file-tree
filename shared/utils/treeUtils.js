@@ -21,9 +21,44 @@ export const createFileNode = (filePath, stat) => {
   }
 }
 
-// export const traverse = () => {
-//
-// }
+export const sortNodes = (nodes) => {
+  return Object.keys(nodes).sort().map((key) => {
+    return nodes[key]
+  })
+}
+
+export const getVisibleNodesByIndex = (root, targetIndex, targetCount) => {
+  let currentIndex = 0
+  let currentCount = 0
+  const nodes = []
+
+  const getNode = (node, depth) => {
+    if (currentCount >= targetCount) {
+      return
+    }
+
+    if (currentIndex >= targetIndex) {
+      nodes.push({
+        node,
+        depth,
+      })
+      currentCount++
+    }
+
+    currentIndex++
+
+    if (node.expanded) {
+      const children = sortNodes(node.children)
+      for (var i = 0; i < children.length; i++) {
+        getNode(children[i], depth + 1)
+      }
+    }
+  }
+
+  getNode(root, 0)
+
+  return nodes
+}
 
 export const countVisibleNodes = (node) => {
   let count = 1
