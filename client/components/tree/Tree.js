@@ -22,14 +22,8 @@ const styles = {
 
 export default class extends Component {
 
-  static childContextTypes = {
-    isExpanded: PropTypes.func,
-    onToggleNode: PropTypes.func,
-  }
-
   static defaultProps = {
     tree: null,
-    root: '/',
     onToggleNode: () => {},
   }
 
@@ -37,54 +31,27 @@ export default class extends Component {
     super()
 
     this.toggleNode = this.toggleNode.bind(this)
-    this.isExpanded = this.isExpanded.bind(this)
-  }
-
-  getChildContext() {
-    return {
-      onToggleNode: this.toggleNode,
-      isExpanded: this.isExpanded,
-    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
     return shallowCompare(this, nextProps, nextState)
   }
 
-  isExpanded(path) {
-    return !! this.props.expandedNodes[path]
-  }
-
   toggleNode(path, expanded) {
-    const {root, expandedNodes} = this.props
-
     this.props.onToggleNode(path, expanded)
-    path = path.slice(root.length)
-    const parts = split(path)
-    let ref = this.refs.root
-    while (parts.length) {
-      ref = ref.refs[parts[0]]
-      // console.log('updating ref', ref.props.path)
-      // ref.forceUpdate()
-      parts.shift()
-    }
-    ref.forceUpdate()
   }
 
   render() {
-    const {tree, root} = this.props
+    const {tree} = this.props
 
     return (
       <div style={styles.container}>
-        {(tree &&
+        {tree && (
           <Node
             ref={'root'}
-            // expanded={this.isExpanded(root)}
-            name={nodePath.basename(root)}
-            path={root}
-            type={'directory'}
-            nodes={tree.children}
+            node={tree}
             depth={0}
+            onToggleNode={this.toggleNode}
           />
         )}
       </div>

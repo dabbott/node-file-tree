@@ -14,10 +14,10 @@ init(watcher, tree)
 
 watcher.on('all', treeActions(tree))
 
-tree.store.on('update', function( state ){
-  console.log('=== state ===')
-  console.log(JSON.stringify(state, null, 2))
-})
+// tree.store.on('update', function( state ){
+//   console.log('=== state ===')
+//   console.log(JSON.stringify(state, null, 2))
+// })
 
 
 //

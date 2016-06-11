@@ -26,29 +26,18 @@ const render = (state) => {
   try {
     state = state.children.Users.children.devinabbott.children.Projects
   } catch (e) {
-    console.log('not loaded')
+    console.log('not loaded', state)
   }
 
   const root = (
     <div style={style}>
       <TreeComponent
         tree={state}
-        root={'/Users/devinabbott/Projects'}
-        pathSeparator={path.sep}
-        expandedNodes={expandedNodes}
         onToggleNode={(path, expanded) => {
-          // store.dispatch('toggleNode', path, expanded)
-          if (expandedNodes[path]) {
-            delete expandedNodes[path]
-          } else {
-            expandedNodes[path] = true
-            transport.send({
-              eventName: 'watchPath',
-              path: path,
-            })
-          }
-
-          tree.store.trigger('update', tree.state)
+          transport.send({
+            eventName: 'watchPath',
+            path: path,
+          })
         }}
       />
       <pre>{JSON.stringify(expandedNodes, null, 2)}</pre>
@@ -60,6 +49,7 @@ const render = (state) => {
 
 // store.on('change', render)
 tree.on('change', function (state, prevState) {
+  console.log('> state tree updated', state)
   render(state)
   // console.log('tree change', arguments)
 })
@@ -99,7 +89,7 @@ transport.on('message', (payload) => {
   } else {
     const {path} = payload
 
-    console.log('event', eventName, path)
+    // console.log('event', eventName, path)
 
     treeActions(tree)(eventName, path)
 

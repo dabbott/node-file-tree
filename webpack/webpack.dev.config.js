@@ -9,4 +9,6 @@ options.plugins.unshift(
   })
 )
 
+options.devtool = 'cheap-eval-source-map'
+
 module.exports = options

@@ -9,6 +9,9 @@ class Tree extends EventEmitter {
   constructor(rootPath = '/', initialState) {
     super()
 
+    this.emitChange = this.emitChange.bind(this)
+
+    this.emitCount = 0
     this.inTransaction = false
     this.set(rootPath, initialState)
   }
@@ -17,8 +20,18 @@ class Tree extends EventEmitter {
 
     state = state || ensureNode(rootPath)
 
+    if (this.store) {
+      this.store.off('update', this.emitChange)
+    }
+
     this.store = new Freezer(state)
-    this.store.on('update', this.emit.bind(this, 'change'))
+    this.store.on('update', this.emitChange)
+
+    this.emitChange(this.state)
+  }
+  emitChange(...args) {
+    console.log('emitting', this.emitCount++)
+    this.emit('change', ...args)
   }
   get state() {
     if (this.inTransaction) {

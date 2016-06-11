@@ -11,32 +11,22 @@ const isDirectory = (type) => {
 
 export default class Node extends Component {
 
-  static contextTypes = {
-    isExpanded: PropTypes.func,
-    pathSeparator: PropTypes.string,
-    onToggleNode: PropTypes.func,
-  }
-
   static defaultProps = {
-    name: null,
-    nodes: {},
+    // node: null,
   }
 
   constructor(props, context) {
     super(props)
-    const {nodes, depth} = props
-    this.state = this.mapPropsToState(props, context)
+
+    this.state = this.mapPropsToState(props)
   }
 
   mapPropsToState(props, context) {
-    const {type, nodes, path} = props
-    // const {expandedNodes} = context
+    const {type, children} = props.node
 
     if (isDirectory(type)) {
-      // console.log('props => state', path, !! expandedNodes[path])
       return {
-        sortedNodes: this.sortNodes(nodes),
-        // expanded: !! expandedNodes[path],
+        sortedNodes: this.sortNodes(children),
       }
     } else {
       return {}
@@ -46,35 +36,18 @@ export default class Node extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     const changed = shallowCompare(this, nextProps, nextState)
 
-    // console.log('should update?', changed, nextProps.path)
+    // console.log('should update?', changed, nextProps.node.path)
 
     return changed
-    //
-    // if (nextProps.path === '') {
-    //   console.log('changed', nextProps.path, changed)
-    // }
-    //
-    // if (changed) {
-    //   return true
-    // } else {
-    //   const {path} = this.props
-    //   const {expandedNodes: oldExpandedNodes} = this.context
-    //   const {expandedNodes: newExpandedNodes} = nextContext
-    //
-    //   return oldExpandedNodes[path] !== newExpandedNodes[path]
-    // }
-
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
-    const {nodes: oldNodes} = this.props
-    const {nodes: newNodes, path} = nextProps
-    //
-    // const {expandedNodes: oldExpandedNodes} = this.context
-    // const {expandedNodes: newExpandedNodes} = nextContext
+    const {children: oldChildren} = this.props.node
+    const {children: newChildren} = nextProps.node
 
-    if (oldNodes !== newNodes) {
-      this.setState(this.mapPropsToState(nextProps, nextContext))
+    if (oldChildren !== newChildren) {
+      // console.log('props => state', nextProps.node.path)
+      this.setState(this.mapPropsToState(nextProps))
     }
   }
 
@@ -87,20 +60,21 @@ export default class Node extends Component {
   }
 
   render() {
-    const {name, depth, type, path} = this.props
+    const {depth, node, onToggleNode} = this.props
+    const {type, expanded, name, path} = node
     const {sortedNodes} = this.state
-    const {pathSeparator, onToggleNode, isExpanded} = this.context
-    const expanded = isExpanded(path)
-    // const expanded = typeof expandedProp === 'undefined' ? isExpanded(path) : expandedProp
 
-    // console.log('rendering', 'expanded', expanded, path)
+    // console.log('rendering', 'expanded', expanded, path, node)
 
     return (
       <div style={styles.nodeContainer}>
         <div style={getPaddedStyle(depth)}
           onClick={() => {
-            console.log('onClick', type, path, expanded)
-            isDirectory(type) && onToggleNode(path, ! expanded)
+            const nextExpandedState = ! expanded
+            if (isDirectory(type)) {
+              node.set('expanded', nextExpandedState)
+              onToggleNode(path, nextExpandedState)
+            }
           }}>
           {isDirectory(type) && (
             <NodeCaret
@@ -109,16 +83,14 @@ export default class Node extends Component {
           )}
           <div style={styles.nodeText}>{name}</div>
         </div>
-        {expanded && sortedNodes.map((node) => {
+        {expanded && sortedNodes.map((child) => {
           return (
             <Node
-              ref={node.name}
-              key={node.name}
-              name={node.name}
-              path={nodePath.join(path, node.name)}
-              type={node.type}
-              nodes={isDirectory(node.type) ? node.children : null}
+              ref={child.name}
+              key={child.name}
+              node={child}
               depth={depth + 1}
+              onToggleNode={onToggleNode}
             />
           )
         })}

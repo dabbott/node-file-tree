@@ -14,7 +14,7 @@ export const init = (watcher, tree) => {
   }
 
   watcher.on('all', (eventName, path) => {
-    console.log('watcher event', eventName)
+    // console.log('watcher event', eventName)
     const action = { eventName, path }
     connections.forEach(ws => {
       ws.send(JSON.stringify(action))
