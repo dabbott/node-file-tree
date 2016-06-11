@@ -21,9 +21,22 @@ export const createFileNode = (filePath, stat) => {
   }
 }
 
-// export const addChildNode = (parent, child) => {
-//   parent.children
+// export const traverse = () => {
+//
 // }
+
+export const countVisibleNodes = (node) => {
+  let count = 1
+
+  if (node.expanded) {
+    const children = node.children
+    for (var key in children) {
+      count += countVisibleNodes(children[key])
+    }
+  }
+
+  return count
+}
 
 export const ensureNode = (dirPath, state) => {
   const parts = split(dirPath)

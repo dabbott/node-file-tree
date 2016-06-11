@@ -3,7 +3,6 @@ import shallowCompare from 'react-addons-shallow-compare'
 import nodePath from 'path'
 
 import Node from './Node'
-import {split} from '../../../shared/utils/pathUtils'
 
 const styles = {
   container: {
