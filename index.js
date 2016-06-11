@@ -1,5 +1,6 @@
-require('./styles/reset.css')
-require('./styles/index.css')
+import 'react-virtualized/styles.css'
+import './styles/reset.css'
+import './styles/index.css'
 
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
@@ -33,14 +34,15 @@ const render = (state) => {
     <div style={style}>
       <TreeComponent
         tree={state}
-        onToggleNode={(path, expanded) => {
-          transport.send({
-            eventName: 'watchPath',
-            path: path,
-          })
+        onToggleNode={({path, expanded}) => {
+          if (expanded) {
+            transport.send({
+              eventName: 'watchPath',
+              path: path,
+            })
+          }
         }}
       />
-      <pre>{JSON.stringify(expandedNodes, null, 2)}</pre>
     </div>
   )
 

@@ -34,11 +34,15 @@ export default class extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return shallowCompare(this, nextProps, nextState)
+    const {tree: oldTree} = this.props
+    const {tree: newTree} = nextProps
+
+    return oldTree !== newTree
+    // return shallowCompare(this, nextProps, nextState)
   }
 
-  toggleNode(path, expanded) {
-    this.props.onToggleNode(path, expanded)
+  toggleNode(node) {
+    this.props.onToggleNode(node)
   }
 
   render() {

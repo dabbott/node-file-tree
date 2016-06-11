@@ -26,10 +26,10 @@ export const createFileNode = (filePath, stat) => {
 // }
 
 export const ensureNode = (dirPath, state) => {
-  state = state || createDirectoryNode()
-
   const parts = split(dirPath)
   const {root} = path.parse ? path.parse(dirPath) : {root: '/'}
+
+  state = state || createDirectoryNode(root)
 
   let lastPart = state
   let currentPath = root

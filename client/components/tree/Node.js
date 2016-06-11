@@ -70,10 +70,9 @@ export default class Node extends Component {
       <div style={styles.nodeContainer}>
         <div style={getPaddedStyle(depth)}
           onClick={() => {
-            const nextExpandedState = ! expanded
             if (isDirectory(type)) {
-              node.set('expanded', nextExpandedState)
-              onToggleNode(path, nextExpandedState)
+              const updated = node.set('expanded', ! expanded)
+              onToggleNode(updated)
             }
           }}>
           {isDirectory(type) && (
