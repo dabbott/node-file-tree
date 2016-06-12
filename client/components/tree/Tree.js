@@ -2,9 +2,10 @@ import React, { Component, PropTypes } from 'react'
 import _ from 'lodash'
 import shallowCompare from 'react-addons-shallow-compare'
 import nodePath from 'path'
+import { AutoSizer, VirtualScroll } from 'react-virtualized'
 
 import Node from './Node'
-import { getVisibleNodesByIndex } from '../../../shared/utils/treeUtils'
+import { getVisibleNodesByIndex, countVisibleNodes } from '../../../shared/utils/treeUtils'
 
 const styles = {
   container: {
@@ -16,7 +17,7 @@ const styles = {
     backgroundColor: '#3B3738',
     minHeight: 0,
     minWidth: 0,
-    overflow: 'auto',
+    overflow: 'none',
     flexWrap: 'no-wrap',
   },
 }
@@ -28,21 +29,31 @@ export default class extends Component {
     onToggleNode: () => {},
   }
 
-  constructor() {
+  constructor(props) {
     super()
 
     this.toggleNode = this.toggleNode.bind(this)
     this.renderNode = this.renderNode.bind(this)
-    // this.handleScroll = _.throttle(this.handleScroll.bind(this), 100)
+
+    this.state = this.mapPropsToState(props)
   }
 
-  // componentDidMount() {
-  //   this.calculatePosition()
-  // }
-  //
-  // componentDidUpdate() {
-  //   this.calculatePosition()
-  // }
+  mapPropsToState(props) {
+    const {tree} = props
+
+    return {
+      visibleNodes: countVisibleNodes(tree),
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const {tree: oldTree} = this.props
+    const {tree: newTree} = nextProps
+
+    if (oldTree !== newTree) {
+      this.setState(this.mapPropsToState(nextProps))
+    }
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
     const {tree: oldTree} = this.props
@@ -56,8 +67,13 @@ export default class extends Component {
     this.props.onToggleNode(node)
   }
 
-  renderNode({node, depth}) {
+  // renderNode({node, depth}) {
+  renderNode({index}) {
+    const visibleNodes = getVisibleNodesByIndex(this.props.tree, index, 1)
+    const {node, depth} = visibleNodes[0]
     const {path} = node
+    //
+    // console.log('node', index, node)
 
     return (
       <Node
@@ -71,11 +87,26 @@ export default class extends Component {
 
   render() {
     const {tree} = this.props
-    const visibleNodes = getVisibleNodesByIndex(tree, 0, 20)
+    const {visibleNodes} = this.state
 
     return (
       <div style={styles.container}>
-        {visibleNodes.map(this.renderNode)}
+        <div style={{flex: '1 1 auto', minHeight: 0, minWidth: 0, overflow: 'none'}}>
+          <AutoSizer>
+            {({width, height}) => (
+              <VirtualScroll
+                height={height}
+                overscanRowCount={10}
+                rowHeight={40}
+                rowRenderer={this.renderNode}
+                rowCount={visibleNodes}
+                width={width}
+                // Updates the VirtualScroll when data changes
+                tree={tree}
+              />
+            )}
+          </AutoSizer>
+        </div>
       </div>
     )
   }

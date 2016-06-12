@@ -30,7 +30,7 @@ class Tree extends EventEmitter {
     this.emitChange(this.state)
   }
   emitChange(...args) {
-    console.log('emitting', this.emitCount++)
+    // console.log('emitting', this.emitCount++)
     this.emit('change', ...args)
   }
   get state() {
