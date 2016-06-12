@@ -7,7 +7,7 @@ export const createDirectoryNode = (filePath, stat) => {
     type: 'directory',
     name: path.basename(filePath),
     path: filePath,
-    stat,
+    // stat,
     children: {},
   }
 }
@@ -17,7 +17,7 @@ export const createFileNode = (filePath, stat) => {
     type: 'file',
     name: path.basename(filePath),
     path: filePath,
-    stat,
+    // stat,
   }
 }
 
@@ -27,7 +27,7 @@ export const sortNodes = (nodes) => {
   })
 }
 
-export const getVisibleNodesByIndex = (root, targetIndex, targetCount) => {
+export const getVisibleNodesByIndex = (root, ui, targetIndex, targetCount) => {
   let currentIndex = 0
   let currentCount = 0
   const nodes = []
@@ -47,7 +47,7 @@ export const getVisibleNodesByIndex = (root, targetIndex, targetCount) => {
 
     currentIndex++
 
-    if (node.expanded) {
+    if (ui[node.path]) {
       const children = sortNodes(node.children)
       for (var i = 0; i < children.length; i++) {
         getNode(children[i], depth + 1)
@@ -60,13 +60,13 @@ export const getVisibleNodesByIndex = (root, targetIndex, targetCount) => {
   return nodes
 }
 
-export const countVisibleNodes = (node) => {
+export const countVisibleNodes = (node, ui) => {
   let count = 1
 
-  if (node.expanded) {
+  if (ui[node.path]) {
     const children = node.children
     for (var key in children) {
-      count += countVisibleNodes(children[key])
+      count += countVisibleNodes(children[key], ui)
     }
   }
 

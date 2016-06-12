@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom'
 import path from 'path'
 
 import Transport from './client/Transport'
-import WorkQueue from './client/WorkQueue'
+import WorkQueue from './shared/WorkQueue'
 import Tree from './shared/tree'
 import treeActions from './shared/treeActions'
 import TreeComponent from './client/components/tree/Tree'
@@ -20,25 +20,27 @@ const actions = treeActions(tree)
 const workQueue = new WorkQueue()
 workQueue.on('start', (taskCount) => {
   console.log('tasks =>', taskCount)
-  // tree.startTransaction()
+  tree.startTransaction()
 })
-// workQueue.on('finish', tree.finishTransaction)
+workQueue.on('finish', tree.finishTransaction)
 
 let renderCount = 0
 const render = (state) => {
   console.log('render', renderCount++)
+  let {tree, ui} = state
 
   try {
-    state = state.children.Users.children.devinabbott.children.Projects
+    tree = tree.children.Users.children.devinabbott.children.Projects
   } catch (e) {
-    console.log('not loaded', state)
+    console.log('not loaded', tree)
   }
 
   const root = (
     <div style={style}>
       <TreeComponent
-        tree={state}
-        onToggleNode={({path, expanded}) => {
+        tree={tree}
+        ui={ui}
+        onToggleNode={({path}, expanded) => {
           if (expanded) {
             transport.send({
               eventName: 'watchPath',
@@ -47,6 +49,7 @@ const render = (state) => {
           }
         }}
       />
+      <pre>{JSON.stringify(ui, null, 2)}</pre>
     </div>
   )
 
@@ -64,13 +67,13 @@ transport.on('message', (payload) => {
   if (eventName === 'initialState') {
     const {rootPath, state} = payload
 
-    // console.log('state =>', state)
+    console.log('state =>', state)
 
-    tree.set(rootPath, state)
+    tree.set(rootPath, state.tree, state.stat)
   } else {
     const {path} = payload
 
-    // console.log('event', eventName, path)
+    console.log('event', eventName, path)
 
     const action = actions.bind(null, eventName, path)
     workQueue.push(action)

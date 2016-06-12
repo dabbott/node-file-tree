@@ -12,12 +12,16 @@ const isDirectory = (type) => {
 export default class Node extends Component {
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    return shallowCompare(this, nextProps, nextState)
+    const shouldUpdate = shallowCompare(this, nextProps, nextState)
+
+    // console.log('update', shouldUpdate, nextProps.node.path)
+
+    return shouldUpdate
   }
 
   render() {
-    const {depth, node, onToggleNode} = this.props
-    const {type, expanded, name, path} = node
+    const {depth, node, expanded, onToggleNode} = this.props
+    const {type, name, path} = node
 
     // console.log('rendering', 'expanded', expanded, path, node)
 
@@ -26,8 +30,7 @@ export default class Node extends Component {
         <div style={getPaddedStyle(depth)}
           onClick={() => {
             if (isDirectory(type)) {
-              const updated = node.set('expanded', ! expanded)
-              onToggleNode(updated)
+              onToggleNode(node)
             }
           }}>
           {isDirectory(type) && (

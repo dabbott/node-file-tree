@@ -1,6 +1,10 @@
 
 import EventEmitter from 'events'
 
+const nextFrame = typeof window !== 'undefined' ?
+  window.requestAnimationFrame.bind(window) :
+  process.nextTick.bind(process)
+
 export default class extends EventEmitter {
   constructor(queue = []) {
     super()
@@ -16,7 +20,7 @@ export default class extends EventEmitter {
 
     if (! this.willRun) {
       this.willRun = true
-      window.requestAnimationFrame(this.run)
+      nextFrame(this.run)
     }
   }
 
@@ -27,21 +31,21 @@ export default class extends EventEmitter {
 
     this.willRun = false
 
-    const startTime = performance.now()
+    const startTime = Date.now()
 
     this.emit('start', this.queue.length)
 
     let i = 0
     while (i < this.queue.length) {
       this.queue[i]()
-      const elapsed = performance.now() - startTime
+      const elapsed = Date.now() - startTime
 
       i++
 
       if (elapsed > 30) {
         console.log(elapsed, i)
         this.willRun = true
-        window.requestAnimationFrame(this.run)
+        nextFrame(this.run)
         break
       }
     }

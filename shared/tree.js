@@ -6,7 +6,7 @@ import { split, within } from './utils/pathUtils'
 import { ensureNode, createFileNode, createDirectoryNode } from './utils/treeUtils'
 
 class Tree extends EventEmitter {
-  constructor(rootPath = '/', initialState) {
+  constructor(rootPath = '/') {
     super()
 
     this.emitChange = this.emitChange.bind(this)
@@ -15,21 +15,32 @@ class Tree extends EventEmitter {
 
     this.emitCount = 0
     this.inTransaction = false
-    this.set(rootPath, initialState)
-  }
-  set(rootPath, state) {
-    this.rootPath = rootPath
 
-    state = state || ensureNode(rootPath)
-
-    if (this.store) {
-      this.store.off('update', this.emitChange)
-    }
-
-    this.store = new Freezer(state)
+    this.store = new Freezer({})
     this.store.on('update', this.emitChange)
 
-    this.emitChange(this.state)
+    this.set(rootPath)
+  }
+  set(rootPath, tree, stat, ui) {
+    this.rootPath = rootPath
+
+    const {state} = this
+
+    this.startTransaction()
+
+    if (tree || ! state.tree) {
+      state.set('tree', tree || ensureNode(rootPath))
+    }
+
+    if (stat || ! state.stat) {
+      state.set('stat', stat || {})
+    }
+
+    if (ui || ! state.ui) {
+      state.set('ui', ui || {})
+    }
+
+    this.finishTransaction()
   }
   emitChange(...args) {
     // console.log('emitting', this.emitCount++)
@@ -42,15 +53,20 @@ class Tree extends EventEmitter {
     return this.store.get()
   }
   startTransaction() {
+    if (this.inTransaction) {
+      throw new Error(`Already in transaction, can't start another.`)
+    }
+
     this.transactionState = this.state.transact()
     this.inTransaction = true
   }
   finishTransaction() {
     this.transactionState = null
     this.inTransaction = false
+    this.store.get().run()
   }
   get(filePath) {
-    const {state, rootPath} = this
+    const {state: {tree}, rootPath} = this
 
     const isWithin = within(filePath, rootPath)
 
@@ -60,7 +76,7 @@ class Tree extends EventEmitter {
 
     const parts = split(filePath)
 
-    let parent = state
+    let parent = tree
     while (parts.length) {
       const part = parts[0]
 

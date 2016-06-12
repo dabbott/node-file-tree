@@ -13,30 +13,34 @@ export const init = (watcher, tree) => {
     }
   }
 
-  // watcher.on('all', (eventName, path) => {
-  //   // console.log('watcher event', eventName)
-  //   const action = { eventName, path }
+  watcher.on('all', (eventName, path) => {
+    // console.log('watcher event', eventName)
+    const action = { eventName, path }
+    process.nextTick(() => {
+      connections.forEach(ws => {
+        // console.log('sending', eventName)
+        ws.send(JSON.stringify(action))
+      })
+    })
+
+  })
+
+  // let treeChange = 0
+  //
+  // tree.on('change', (state) => {
+  //   console.log('tree change', treeChange++)
+  //   const action = {
+  //     eventName: 'initialState',
+  //     rootPath: tree.rootPath,
+  //     state: tree.toJS(),
+  //   }
+  //
   //   connections.forEach(ws => {
   //     // console.log('sending', eventName)
   //     ws.send(JSON.stringify(action))
   //   })
   // })
 
-  let treeChange = 0
-
-  tree.on('change', (state) => {
-    console.log('tree change', treeChange++)
-    const action = {
-      eventName: 'initialState',
-      rootPath: tree.rootPath,
-      state: tree.toJS(),
-    }
-
-    connections.forEach(ws => {
-      // console.log('sending', eventName)
-      ws.send(JSON.stringify(action))
-    })
-  })
 
   app.ws('/', function(ws, req) {
 
