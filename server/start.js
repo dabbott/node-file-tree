@@ -12,7 +12,7 @@ const watcher = watch(DIRECTORY)
 
 init(watcher, tree)
 
-watcher.on('all', treeActions(tree))
+watcher.on('all', treeActions(tree, false))
 
 // tree.store.on('update', function( state ){
 //   console.log('=== state ===')
