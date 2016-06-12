@@ -10,6 +10,8 @@ class Tree extends EventEmitter {
     super()
 
     this.emitChange = this.emitChange.bind(this)
+    this.startTransaction = this.startTransaction.bind(this)
+    this.finishTransaction = this.finishTransaction.bind(this)
 
     this.emitCount = 0
     this.inTransaction = false
@@ -40,12 +42,12 @@ class Tree extends EventEmitter {
     return this.store.get()
   }
   startTransaction() {
-    this.inTransaction = true
     this.transactionState = this.state.transact()
+    this.inTransaction = true
   }
   finishTransaction() {
-    this.inTransaction = false
     this.transactionState = null
+    this.inTransaction = false
   }
   get(filePath) {
     const {state, rootPath} = this

@@ -1,8 +1,6 @@
 import React, { Component, PropTypes } from 'react'
-import _ from 'lodash'
-import shallowCompare from 'react-addons-shallow-compare'
-import nodePath from 'path'
 import { AutoSizer, VirtualScroll } from 'react-virtualized'
+import shallowCompare from 'react-addons-shallow-compare'
 
 import Node from './Node'
 import { getVisibleNodesByIndex, countVisibleNodes } from '../../../shared/utils/treeUtils'
@@ -20,6 +18,12 @@ const styles = {
     overflow: 'none',
     flexWrap: 'no-wrap',
   },
+  autoSizerWrapper: {
+    flex: '1 1 auto',
+    minHeight: 0,
+    minWidth: 0,
+    overflow: 'none',
+  }
 }
 
 export default class extends Component {
@@ -41,9 +45,6 @@ export default class extends Component {
   mapPropsToState(props) {
     const {tree} = props
 
-    delete this.indexCache
-    delete this.indexOffset
-
     return {
       visibleNodes: countVisibleNodes(tree),
     }
@@ -54,6 +55,9 @@ export default class extends Component {
     const {tree: newTree} = nextProps
 
     if (oldTree !== newTree) {
+      delete this.indexCache
+      delete this.indexOffset
+
       this.setState(this.mapPropsToState(nextProps))
     }
   }
@@ -107,7 +111,7 @@ export default class extends Component {
 
     return (
       <div style={styles.container}>
-        <div style={{flex: '1 1 auto', minHeight: 0, minWidth: 0, overflow: 'none'}}>
+        <div style={styles.autoSizerWrapper}>
           <AutoSizer>
             {({width, height}) => (
               <VirtualScroll
