@@ -41,6 +41,9 @@ export default class extends Component {
   mapPropsToState(props) {
     const {tree} = props
 
+    delete this.indexCache
+    delete this.indexOffset
+
     return {
       visibleNodes: countVisibleNodes(tree),
     }
@@ -67,13 +70,26 @@ export default class extends Component {
     this.props.onToggleNode(node)
   }
 
-  // renderNode({node, depth}) {
   renderNode({index}) {
-    const visibleNodes = getVisibleNodesByIndex(this.props.tree, index, 1)
-    const {node, depth} = visibleNodes[0]
+    if (! this.indexCache ||
+        ! this.indexCache[index - this.indexOffset]) {
+      const lowerBound = Math.max(0, index - 20)
+      const upperBound = index + 40
+
+      this.indexOffset = lowerBound
+      this.indexCache = getVisibleNodesByIndex(
+        this.props.tree,
+        lowerBound,
+        upperBound
+      )
+
+      // console.log('cached', lowerBound, '<-->', upperBound)
+    }
+
+    const {node, depth} = this.indexCache[index - this.indexOffset]
     const {path} = node
-    //
-    // console.log('node', index, node)
+
+    // console.log('node', index)
 
     return (
       <Node
