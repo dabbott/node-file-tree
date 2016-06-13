@@ -7,7 +7,9 @@ module.exports = {
   devServer: {
     contentBase: DIRECTORY,
     port: 3123,
+    cache: false,
   },
+  cache: false,
   entry: {
     index: path.join(DIRECTORY, 'index.js'),
   },

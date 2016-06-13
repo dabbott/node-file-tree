@@ -6,49 +6,64 @@ import { split, within } from './utils/pathUtils'
 import { ensureNode, createFileNode, createDirectoryNode } from './utils/treeUtils'
 
 class Tree extends EventEmitter {
-  constructor(rootPath = '/', initialState) {
+  constructor(rootPath = '/') {
     super()
 
     this.emitChange = this.emitChange.bind(this)
+    this.startTransaction = this.startTransaction.bind(this)
+    this.finishTransaction = this.finishTransaction.bind(this)
 
-    this.emitCount = 0
     this.inTransaction = false
-    this.set(rootPath, initialState)
+
+    this.state = {}
+
+    this.set(rootPath)
   }
-  set(rootPath, state) {
+  set(rootPath, tree, stat, ui) {
     this.rootPath = rootPath
 
-    state = state || ensureNode(rootPath)
+    const {state} = this
 
-    if (this.store) {
-      this.store.off('update', this.emitChange)
+    this.startTransaction()
+
+    if (tree || ! state.tree) {
+      state.tree = tree || ensureNode(rootPath)
     }
 
-    this.store = new Freezer(state)
-    this.store.on('update', this.emitChange)
+    if (stat || ! state.stat) {
+      state.stat = stat || {}
+    }
 
-    this.emitChange(this.state)
+    if (ui || ! state.ui) {
+      state.ui = ui || {}
+    }
+
+    this.finishTransaction()
   }
-  emitChange(...args) {
-    console.log('emitting', this.emitCount++)
-    this.emit('change', ...args)
-  }
-  get state() {
+  emitChange() {
     if (this.inTransaction) {
-      return this.transactionState
+      return
     }
-    return this.store.get()
+
+    this.emit('change', this.state)
   }
   startTransaction() {
+    if (this.inTransaction) {
+      throw new Error(`Already in transaction, can't start another.`)
+    }
+
     this.inTransaction = true
-    this.transactionState = this.state.transact()
   }
   finishTransaction() {
+    if (! this.inTransaction) {
+      throw new Error(`Can't end transaction, not in one.`)
+    }
+
     this.inTransaction = false
-    this.transactionState = null
+    this.emitChange()
   }
   get(filePath) {
-    const {state, rootPath} = this
+    const {state: {tree}, rootPath} = this
 
     const isWithin = within(filePath, rootPath)
 
@@ -58,7 +73,7 @@ class Tree extends EventEmitter {
 
     const parts = split(filePath)
 
-    let parent = state
+    let parent = tree
     while (parts.length) {
       const part = parts[0]
 
@@ -84,7 +99,9 @@ class Tree extends EventEmitter {
     const basePath = path.basename(itemPath)
     item.name = basePath
     item.path = itemPath
-    parent.children.set(basePath, item)
+    parent.children[basePath] = item
+
+    this.emitChange()
 
     return item
   }
@@ -113,7 +130,9 @@ class Tree extends EventEmitter {
 
     const basePath = path.basename(itemPath)
     const item = parent.children[basePath]
-    parent.children.remove(basePath)
+    delete parent.children[basePath]
+
+    this.emitChange()
 
     return item
   }
@@ -124,7 +143,7 @@ class Tree extends EventEmitter {
     this.remove(itemPath)
   }
   toJS() {
-    return this.state.toJS()
+    return this.state
   }
 }
 

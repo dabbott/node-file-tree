@@ -1,5 +1,10 @@
-export default (tree) => (eventName, path, metadata) => {
-  // console.log('=>', eventName, path, metadata)
+let actionCount = 0
+
+export default (tree, debug) => (eventName, path, metadata) => {
+  if (debug) {
+    console.log('action', actionCount++, '=>', eventName, path)
+  }
+
   switch (eventName) {
     case 'add':
       tree.addFile(path, metadata)

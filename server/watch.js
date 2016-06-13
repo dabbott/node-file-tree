@@ -7,8 +7,8 @@ export const watch = (dirPath) => {
   // Initialize watcher.
   var watcher = chokidar.watch(dirPath, {
     persistent: true,
-    // depth: 0,
-    depth: 1,
+    depth: 0,
+    // depth: 1,
   })
 
   // // Something to use when events are received.
