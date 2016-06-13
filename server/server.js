@@ -13,16 +13,20 @@ export const init = (watcher, tree) => {
     }
   }
 
-  watcher.on('all', (eventName, path) => {
-    // console.log('watcher event', eventName)
-    const action = { eventName, path }
-    // process.nextTick(() => {
-      connections.forEach(ws => {
-        // console.log('sending', eventName)
-        ws.send(JSON.stringify(action))
-      })
-    // })
+  watcher.on('all', (type, path, stat) => {
+    // console.log('watcher event', type)
+    const action = JSON.stringify({
+      type,
+      payload: {
+        path,
+        stat,
+      }
+    })
 
+    connections.forEach(ws => {
+      // console.log('sending', type)
+      ws.send(action)
+    })
   })
 
   // let treeChange = 0
@@ -30,13 +34,13 @@ export const init = (watcher, tree) => {
   // tree.on('change', (state) => {
   //   console.log('tree change', treeChange++)
   //   const action = {
-  //     eventName: 'initialState',
+  //     type: 'state',
   //     rootPath: tree.rootPath,
   //     state: tree.toJS(),
   //   }
   //
   //   connections.forEach(ws => {
-  //     // console.log('sending', eventName)
+  //     // console.log('sending', type)
   //     ws.send(JSON.stringify(action))
   //   })
   // })
@@ -46,20 +50,22 @@ export const init = (watcher, tree) => {
 
     // Send initial state upon connection
     const action = {
-      eventName: 'initialState',
-      rootPath: tree.rootPath,
-      state: tree.toJS(),
+      type: 'state',
+      payload: {
+        rootPath: tree.rootPath,
+        state: tree.toJS(),
+      },
     }
 
     ws.send(JSON.stringify(action))
 
     ws.on('message', (e) => {
       const message = JSON.parse(e)
-      const {eventName} = message
+      const {type, payload} = message
 
-      switch (eventName) {
+      switch (type) {
         case 'watchPath':
-          const {path} = message
+          const {path} = payload
           watcher.add(path + '/')
           console.log('watching path', path)
         break

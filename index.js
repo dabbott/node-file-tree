@@ -8,7 +8,7 @@ import path from 'path'
 
 import Transport from './client/Transport'
 import WorkQueue from './shared/WorkQueue'
-import Tree from './shared/tree'
+import Tree from './shared/Tree'
 import treeActions from './shared/treeActions'
 import TreeComponent from './client/components/tree/Tree'
 
@@ -45,8 +45,10 @@ const render = (state) => {
           emitChange()
           if (expanded) {
             transport.send({
-              eventName: 'watchPath',
-              path: path,
+              type: 'watchPath',
+              payload: {
+                path,
+              }
             })
           }
         }}

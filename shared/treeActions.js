@@ -1,22 +1,29 @@
 let actionCount = 0
 
-export default (tree, debug) => (eventName, path, metadata) => {
+export default (tree, debug) => (action) => {
+  const {type, payload} = action
+
   if (debug) {
-    console.log('action', actionCount++, '=>', eventName, path)
+    console.log('action', actionCount++, '=>', type, payload.path)
   }
 
-  switch (eventName) {
+  switch (type) {
+    case 'state':
+      tree.set(payload.rootPath, payload.state.tree, payload.state.stat)
+    break
     case 'add':
-      tree.addFile(path, metadata)
+      tree.addFile(payload.path, payload.metadata)
     break
     case 'addDir':
-      tree.addDir(path, metadata)
+      tree.addDir(payload.path, payload.metadata)
     break
     case 'unlink':
-      tree.removeFile(path)
+      tree.removeFile(payload.path)
     break
     case 'unlinkDir':
-      tree.removeDir(path)
+      tree.removeDir(payload.path)
     break
   }
+
+  return tree
 }

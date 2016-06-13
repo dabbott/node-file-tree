@@ -1,6 +1,6 @@
 import { watch } from "./watch"
 import { init } from "./server"
-import Tree from '../shared/tree'
+import Tree from '../shared/Tree'
 import treeActions from '../shared/treeActions'
 import WorkQueue from '../shared/WorkQueue'
 import path from 'path'
