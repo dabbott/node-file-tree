@@ -15,6 +15,7 @@ import TreeComponent from './client/components/tree/Tree'
 const transport = new Transport(`ws://localhost:3124`)
 
 const tree = new Tree()
+const emitChange = tree.emitChange.bind(tree)
 const actions = treeActions(tree)
 
 const workQueue = new WorkQueue()
@@ -41,6 +42,7 @@ const render = (state) => {
         tree={tree}
         ui={ui}
         onToggleNode={({path}, expanded) => {
+          emitChange()
           if (expanded) {
             transport.send({
               eventName: 'watchPath',

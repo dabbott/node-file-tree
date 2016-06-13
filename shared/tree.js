@@ -13,11 +13,9 @@ class Tree extends EventEmitter {
     this.startTransaction = this.startTransaction.bind(this)
     this.finishTransaction = this.finishTransaction.bind(this)
 
-    this.emitCount = 0
     this.inTransaction = false
 
-    this.store = new Freezer({})
-    this.store.on('update', this.emitChange)
+    this.state = {}
 
     this.set(rootPath)
   }
@@ -29,41 +27,40 @@ class Tree extends EventEmitter {
     this.startTransaction()
 
     if (tree || ! state.tree) {
-      state.set('tree', tree || ensureNode(rootPath))
+      state.tree = tree || ensureNode(rootPath)
     }
 
     if (stat || ! state.stat) {
-      state.set('stat', stat || {})
+      state.stat = stat || {}
     }
 
     if (ui || ! state.ui) {
-      state.set('ui', ui || {})
+      state.ui = ui || {}
     }
 
     this.finishTransaction()
   }
-  emitChange(...args) {
-    // console.log('emitting', this.emitCount++)
-    this.emit('change', ...args)
-  }
-  get state() {
+  emitChange() {
     if (this.inTransaction) {
-      return this.transactionState
+      return
     }
-    return this.store.get()
+
+    this.emit('change', this.state)
   }
   startTransaction() {
     if (this.inTransaction) {
       throw new Error(`Already in transaction, can't start another.`)
     }
 
-    this.transactionState = this.state.transact()
     this.inTransaction = true
   }
   finishTransaction() {
-    this.transactionState = null
+    if (! this.inTransaction) {
+      throw new Error(`Can't end transaction, not in one.`)
+    }
+
     this.inTransaction = false
-    this.store.get().run()
+    this.emitChange()
   }
   get(filePath) {
     const {state: {tree}, rootPath} = this
@@ -102,7 +99,9 @@ class Tree extends EventEmitter {
     const basePath = path.basename(itemPath)
     item.name = basePath
     item.path = itemPath
-    parent.children.set(basePath, item)
+    parent.children[basePath] = item
+
+    this.emitChange()
 
     return item
   }
@@ -131,7 +130,9 @@ class Tree extends EventEmitter {
 
     const basePath = path.basename(itemPath)
     const item = parent.children[basePath]
-    parent.children.remove(basePath)
+    delete parent.children[basePath]
+
+    this.emitChange()
 
     return item
   }
@@ -142,7 +143,7 @@ class Tree extends EventEmitter {
     this.remove(itemPath)
   }
   toJS() {
-    return this.state.toJS()
+    return this.state
   }
 }
 

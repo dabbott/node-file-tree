@@ -16,12 +16,12 @@ export const init = (watcher, tree) => {
   watcher.on('all', (eventName, path) => {
     // console.log('watcher event', eventName)
     const action = { eventName, path }
-    process.nextTick(() => {
+    // process.nextTick(() => {
       connections.forEach(ws => {
         // console.log('sending', eventName)
         ws.send(JSON.stringify(action))
       })
-    })
+    // })
 
   })
 

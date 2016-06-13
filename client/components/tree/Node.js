@@ -11,6 +11,12 @@ const isDirectory = (type) => {
 
 export default class Node extends Component {
 
+  constructor() {
+    super()
+
+    this.handleClick = this.handleClick.bind(this)
+  }
+
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     const shouldUpdate = shallowCompare(this, nextProps, nextState)
 
@@ -19,8 +25,17 @@ export default class Node extends Component {
     return shouldUpdate
   }
 
+  handleClick() {
+    const {node, onToggleNode} = this.props
+    const {type} = node
+
+    if (isDirectory(type)) {
+      onToggleNode(node)
+    }
+  }
+
   render() {
-    const {depth, node, expanded, onToggleNode} = this.props
+    const {node, depth, expanded, onToggleNode} = this.props
     const {type, name, path} = node
 
     // console.log('rendering', 'expanded', expanded, path, node)
@@ -28,11 +43,7 @@ export default class Node extends Component {
     return (
       <div style={styles.nodeContainer}>
         <div style={getPaddedStyle(depth)}
-          onClick={() => {
-            if (isDirectory(type)) {
-              onToggleNode(node)
-            }
-          }}>
+          onClick={this.handleClick}>
           {isDirectory(type) && (
             <NodeCaret
               expanded={expanded}

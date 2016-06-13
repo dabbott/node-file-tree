@@ -13,7 +13,7 @@ const watcher = watch(DIRECTORY)
 
 init(watcher, tree)
 
-watcher.on('all', treeActions(tree, false))
+watcher.on('all', treeActions(tree, true))
 
 // const workQueue = new WorkQueue()
 // workQueue.on('start', (taskCount) => {

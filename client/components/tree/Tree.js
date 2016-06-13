@@ -52,31 +52,32 @@ export default class extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const {tree: oldTree, ui: oldUi} = this.props
-    const {tree: newTree, ui: newUi} = nextProps
-
-    if (oldTree !== newTree || oldUi !== newUi) {
+    // const {tree: oldTree, ui: oldUi} = this.props
+    // const {tree: newTree, ui: newUi} = nextProps
+    //
+    // if (oldTree !== newTree || oldUi !== newUi) {
       delete this.indexCache
       delete this.indexOffset
-
+    //
       this.setState(this.mapPropsToState(nextProps))
-    }
+    // }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    const {tree: oldTree, ui: oldUi} = this.props
-    const {tree: newTree, ui: newUi} = nextProps
-
-    return oldTree !== newTree || oldUi !== newUi
-    // return shallowCompare(this, nextProps, nextState)
-  }
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   return true
+  //   // const {tree: oldTree, ui: oldUi} = this.props
+  //   // const {tree: newTree, ui: newUi} = nextProps
+  //   //
+  //   // return oldTree !== newTree || oldUi !== newUi
+  //   // return shallowCompare(this, nextProps, nextState)
+  // }
 
   toggleNode(node) {
     const {ui} = this.props
     const {path} = node
 
-    ui[path] ? ui.remove(path) : ui.set(path, true)
-    this.props.onToggleNode(node, ! ui[path])
+    ui[path] ? delete ui[path] : ui[path] = true
+    this.props.onToggleNode(node, ui[path])
   }
 
   renderNode({index}) {
@@ -118,6 +119,8 @@ export default class extends Component {
     const {tree} = this.props
     const {visibleNodes} = this.state
 
+    console.log('rendering tree')
+
     return (
       <div style={styles.container}>
         <div style={styles.autoSizerWrapper}>
@@ -132,6 +135,7 @@ export default class extends Component {
                 width={width}
                 // Updates the VirtualScroll when data changes
                 tree={tree}
+                // force={Math.random()}
               />
             )}
           </AutoSizer>
